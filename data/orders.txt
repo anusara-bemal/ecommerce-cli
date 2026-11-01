@@ -13,3 +13,4 @@
 13|lahiru|0764990157|dambulla|2|5120.00|0
 14|lahiru|0764990157|dambulla|1|563.20|0
 15|lahiru|0764990157|dambulla|1|125.60|0
+16|lahiru|0764990157|dambulla|1|7090.00|0

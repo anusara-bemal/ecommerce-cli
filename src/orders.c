@@ -17,10 +17,7 @@
 #include "products.h"
 #include "ui.h"
 
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
+// Constants
 #define DATA_DIR          "data"
 #define INVOICE_DIR       "data/invoices"
 #define ORDERS_FILE       "data/orders.txt"
@@ -46,7 +43,7 @@
 #define CHOICE_INVALID (-1)
 #define CHOICE_EOF     (-2)
 
-/* ANSI colours (local names so they never clash with ui.h) */
+// colors for terminal
 #define OR_RESET  "\x1b[0m"
 #define OR_BOLD   "\x1b[1m"
 #define OR_DIM    "\x1b[2m"
@@ -54,7 +51,7 @@
 #define OR_GREEN  "\x1b[32m"
 #define OR_YELLOW "\x1b[33m"
 
-/* Box drawing characters (UTF-8) */
+// box line characters
 #define BOX_H  "\xe2\x95\x90"
 #define BOX_V  "\xe2\x95\x91"
 #define BOX_TL "\xe2\x95\x94"
@@ -97,10 +94,7 @@ typedef enum
     DETAILS_INVALID = 2
 } DetailsResult;
 
-/* ------------------------------------------------------------------ */
-/*  Small helpers                                                      */
-/* ------------------------------------------------------------------ */
-
+// Small helpers
 static void makeDir(const char *path)
 {
 #ifdef _WIN32
@@ -110,7 +104,7 @@ static void makeDir(const char *path)
 #endif
 }
 
-/* Reads one line, discards overflow, trims spaces. Returns 0 on EOF. */
+// read one line, remove extra spaces
 static int inputLine(char *buf, size_t size)
 {
     char *start = buf;
@@ -153,7 +147,7 @@ static int parseInt(const char *s, int *out)
     return 1;
 }
 
-/* Prompt + read a non-negative number. CHOICE_INVALID / CHOICE_EOF on failure. */
+// read a number from user
 static int readChoice(const char *prompt)
 {
     char buf[32];
@@ -171,13 +165,13 @@ static void invalidChoice(void)
     pressEnterToContinue();
 }
 
-/* Non-empty text with no '|' or line breaks (safe for the data files). */
+// check text is not empty and no | sign
 static int validField(const char *s)
 {
     return s != NULL && s[0] != '\0' && strpbrk(s, "|\r\n") == NULL;
 }
 
-/* Splits s in place on '|'. Keeps empty fields. Returns field count. */
+// split one line into parts using |
 static int splitFields(char *s, char **fields, int maxFields)
 {
     int n = 1;
@@ -194,7 +188,7 @@ static int splitFields(char *s, char **fields, int maxFields)
     return n;
 }
 
-/* Windows rename() fails if the target exists, so remove it first. */
+// windows rename no work if file already there so delete first
 static int replaceFile(const char *tmp, const char *target)
 {
     if (remove(target) != 0 && errno != ENOENT)
@@ -202,9 +196,7 @@ static int replaceFile(const char *tmp, const char *target)
     return rename(tmp, target) == 0;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Order file format: id|user|phone|address|items|total|status        */
-/* ------------------------------------------------------------------ */
+// orders.txt line format --> id|user|phone|address|items|total|status
 
 static int parseOrderLine(const char *line, OrderRecord *o)
 {
@@ -239,11 +231,9 @@ static int writeOrder(FILE *f, const OrderRecord *o)
                    o->itemCount, o->total, o->status) >= 0;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Pricing / text helpers                                             */
-/* ------------------------------------------------------------------ */
+// Pricing and text helpers
 
-/* totalPrice = sum(quantities[i] * unitPrices[i]); 0 on any invalid value */
+// total price from quantity * price
 void order_process(const int *quantities, int itemCount,
                    float *unitPrices, float *totalPrice)
 {
@@ -297,11 +287,9 @@ float getDeliveryFee(int deliveryMethod, float subtotal)
     return STANDARD_SHIPPING_FEE;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Place order                                                        */
-/* ------------------------------------------------------------------ */
+// Place order
 
-/* Next free order ID, or -1 on error. */
+// find next order id, -1 if error
 static int generateOrderId(void)
 {
     FILE *file = fopen(ORDERS_FILE, "r");
@@ -379,10 +367,7 @@ int placeOrder(const char *username, const char *phoneNumber,
     return 1;
 }
 
-/* ------------------------------------------------------------------ */
-/*  View / manage orders                                               */
-/* ------------------------------------------------------------------ */
-
+// View and manage orders
 void myOrders(char username[])
 {
     FILE *file;
@@ -409,7 +394,7 @@ void myOrders(char username[])
         return;
     }
 
-    // Table Header - Nordic Style
+// my orders table header
     printf("\n");
     printTableHeader(5, "ID", "ADDRESS", "ITEMS", "TOTAL", "STATUS");
     printTableDivider(5);
@@ -426,7 +411,7 @@ void myOrders(char username[])
             snprintf(itemsStr, sizeof(itemsStr), "%d", o.itemCount);
             snprintf(totalStr, sizeof(totalStr), "Rs.%.2f", o.total);
             
-            // Status color එක
+// give color to status
             const char* statusText = statusToText(o.status);
             char coloredStatus[40];
             if (o.status == 0) // Pending
@@ -436,7 +421,7 @@ void myOrders(char username[])
             else
                 snprintf(coloredStatus, sizeof(coloredStatus), "%s", statusText);
 
-            // Address එක shorten කරන්න
+// cut address to 20 letters
             char shortAddr[21];
             snprintf(shortAddr, sizeof(shortAddr), "%.20s", o.address);
 
@@ -461,7 +446,7 @@ void myOrders(char username[])
     drawFooter();
     pressEnterToContinue();
 }
-/* Prints every order. Returns count, or -1 if the file can't be opened. */
+// show all orders - admin only
 static int listAllOrders(void)
 {
     FILE *file = fopen(ORDERS_FILE, "r");
@@ -523,8 +508,7 @@ static int listAllOrders(void)
     drawFooter();
     return count;
 }
-/* 1 = updated, -1 = order not found, 0 = file error.
-   Unparseable lines are copied through untouched. */
+// change order status - returns 1 if ok, -1 if no order, 0 if file error
 static int setOrderStatus(int orderId, int newStatus)
 {
     FILE *in = fopen(ORDERS_FILE, "r");
@@ -574,7 +558,7 @@ static int setOrderStatus(int orderId, int newStatus)
     return replaceFile(TEMP_ORDERS_FILE, ORDERS_FILE) ? 1 : 0;
 }
 
-/* Admin: list all orders, then change one order's status */
+// admin menu to update status
 void updateOrderStatus(void)
 {
     int count = listAllOrders();
@@ -643,9 +627,7 @@ void updateOrderStatus(void)
     
     pressEnterToContinue();
 }
-/* ------------------------------------------------------------------ */
-/*  Invoice                                                            */
-/* ------------------------------------------------------------------ */
+// Invoice
 
 typedef struct
 {
@@ -828,10 +810,7 @@ void generateInvoice(int orderId,
     printInvoiceBox(&d);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Customer details (users file)                                      */
-/*  Format: id|name|password|email|phone|address|role|active           */
-/* ------------------------------------------------------------------ */
+// read phone and address from users file
 
 int getCustomerDetails(const char *username,
                        char *phoneNumber, size_t phoneSize,
@@ -869,11 +848,9 @@ int getCustomerDetails(const char *username,
     return found;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Checkout                                                           */
-/* ------------------------------------------------------------------ */
+// Checkout
 
-/* Returns the first product ID with too little stock, or 0 if all OK. */
+// check all items have enough stock, return first bad product id (0 =all good)
 static int findShortStock(const CheckoutItems *it)
 {
     for (int i = 0; i < it->count; i++)
@@ -882,7 +859,7 @@ static int findShortStock(const CheckoutItems *it)
     return 0;
 }
 
-/* Loads this customer's cart (merging duplicate products). 1 = ok. */
+// load this user cart from file, same product added together
 static int loadCartItems(const char *username, CheckoutItems *it)
 {
     FILE *file = fopen(CART_DATA_FILE, "r");
@@ -958,7 +935,7 @@ static int loadCartItems(const char *username, CheckoutItems *it)
     return 1;
 }
 
-/* Step 1. Returns 1 = chosen, 0 = back. */
+// step 1 - choose delivery type, return 0 if back
 static int selectDelivery(float subtotal, int *method)
 {
     for (;;)
@@ -1001,7 +978,7 @@ static DetailsResult enterNewDetails(ShippingInfo *s)
                ? DETAILS_OK : DETAILS_INVALID;
 }
 
-/* Step 2. Returns 1 = details chosen, 0 = back. */
+// step 2 - shipping details, return 0 if back
 static int selectShipping(int hasSaved, const ShippingInfo *saved,
                           ShippingInfo *chosen, float subtotal, float fee)
 {
@@ -1011,7 +988,7 @@ static int selectShipping(int hasSaved, const ShippingInfo *saved,
         clearScreen();
         drawHeader("CHECKOUT - SHIPPING");
 
-        // Price summary card
+        // price box
         printf("\n  " MAGENTA "╭──────────────────────────────────────────╮\n" RESET);
           printf("  " MAGENTA "│" RESET "  Subtotal: " WHITE "Rs. %-8.2f" RESET " Shipping: " YELLOW "Rs. %-6.2f" RESET " " MAGENTA "│\n" RESET, subtotal, fee);
           printf("  " MAGENTA "│" RESET "  Total:    " BOLD GREEN "Rs. %-8.2f" RESET "                         " MAGENTA "│\n" RESET, subtotal + fee);
@@ -1063,7 +1040,7 @@ static int selectShipping(int hasSaved, const ShippingInfo *saved,
         pressEnterToContinue();
     }
 }
-/* Step 3. Returns 1 = cash on delivery chosen, 0 = back. */
+// step 3 - payment, return 0 if back
 static int selectPayment(float grandTotal)
 {
     for (;;)
@@ -1072,7 +1049,7 @@ static int selectPayment(float grandTotal)
         clearScreen();
         drawHeader("CHECKOUT - PAYMENT");
 
-        // Grand Total Card
+        // total box
         printf("\n  " MAGENTA "╭──────────────────────────────────────────╮\n" RESET);
           printf("  " MAGENTA "│" RESET "  Amount to Pay: " BOLD GREEN "Rs. %-10.2f" RESET "              " MAGENTA "│\n" RESET, grandTotal);
           printf("  " MAGENTA "╰──────────────────────────────────────────╯\n" RESET);
@@ -1098,6 +1075,7 @@ static int selectPayment(float grandTotal)
         invalidChoice();
     }
 }
+// show summary and ask y/n
 static int confirmOrder(const char *username, const ShippingInfo *s,
                         float subtotal, float fee, int deliveryMethod)
 {
@@ -1133,7 +1111,7 @@ static int confirmOrder(const char *username, const ShippingInfo *s,
     pressEnterToContinue();
     return 0;
 }
-/* Places the order, writes the invoice and reduces stock. 1 = success. */
+// save order, make invoice, reduce stock
 static int submitOrder(const char *username, const CheckoutItems *it,
                        const ShippingInfo *s, float subtotal, float fee,
                        int deliveryMethod)
@@ -1172,7 +1150,7 @@ static int submitOrder(const char *username, const CheckoutItems *it,
     return 1;
 }
 
-/* Delivery -> shipping -> payment -> confirm. Returns 1 if order placed. */
+// run full checkout: delivery -> shipping -> payment -> confirm
 static int runCheckout(const char *username, CheckoutItems *items)
 {
     ShippingInfo saved = {{0}, {0}};
@@ -1226,7 +1204,7 @@ static int runCheckout(const char *username, CheckoutItems *items)
     }
 }
 
-/* Checkout everything in the customer's cart. */
+// checkout cart for this user
 void checkout(const char *username)
 {
     CheckoutItems items;
@@ -1244,7 +1222,7 @@ void checkout(const char *username)
         clearCart(username);
 }
 
-/* "Buy now": checkout a single product, cart is left untouched. */
+// buy now - one product only, cart not change
 void startDirectCheckout(const char *username, int productId,
                          int quantity, float unitPrice)
 {

@@ -1,4 +1,4 @@
-1|BANANA|FOOD|25.60|11|BANANA
+1|BANANA|FOOD|25.60|10|BANANA
 2|Dell Laptop Lite 3682|Computers|66065.00|366|Ideal gift option, available in several colors. Color: red.
 3|Vivo Tripod Pro 2715|Mobiles|36805.50|111|High quality product with excellent reviews. Color: white.
 4|Odel Jeans Lite 5981|Fashion|3680.50|374|Energy efficient and built to last. Color: white.
@@ -99,5 +99,4 @@
 99|Dell Laptop Bag Mini 8891|Computers|6240.50|345|Best seller of the season, limited stock. Color: silver.
 100|Munchee Biscuits Pack Smart 510|Grocery|450.50|114|Popular choice among customers, ships with 1 year warranty. Color: gold.
 101|banana|food|20.00|256|banana from monkeys
-102|Sony Headphones Deluxe 4606|Electronics|4620.00|346|Popular choice among customers, ships with 1 year warranty. Color: silver.
-103|mango|FOOD|25.60|2|mangoos
+102|Sony Headphones Deluxe 4606|Electronics|4620.00|344|Popular choice among customers, ships with 1 year warranty. Color: silver.

@@ -14,19 +14,6 @@
 #define CART_TEMP_FILE "data/temp_cart.txt"
 #define CART_BACKUP_FILE "data/cart_backup.txt"
 
-/* Wait for a complete line without leaving a stray newline in stdin. */
-// static void pauseForEnter(const char *message)
-// {
-//     char buffer[8];
-//     (void)readLine(message, buffer, sizeof(buffer));
-// }
-
-/*
- * Replace cart.txt safely on platforms where rename() cannot overwrite an
- * existing destination (notably Windows). The original is first moved to a
- * backup; if installing the temporary file fails, the backup is restored.
- * All files are in the same directory to avoid cross-filesystem renames.
- */
 static int replaceCartFile(void)
 {
     FILE *check;
